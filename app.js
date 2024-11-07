@@ -3,7 +3,7 @@ const app = express();
 const port = 3000;
 
 app.get('/', (req, res) => {
-  res.send('Hello World This is my first ECR!');
+  res.send('CI/CD with ECR in EC2 instance!');
 });
 
 app.listen(port, () => {
