@@ -1,19 +1,51 @@
 version: 0.2
+
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 637423656705.dkr.ecr.us-east-1.amazonaws.com
+      
+      - echo "Installing dependencies for SonarQube analysis..."
+      - yum install -y unzip wget
+      - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.2.0.1873-linux.zip
+      - unzip sonar-scanner-cli-4.2.0.1873-linux.zip
+      - mv sonar-scanner-4.2.0.1873-linux /opt/sonar-scanner
+      - chmod +x /opt/sonar-scanner/bin/sonar-scanner
+
   build:
     commands:
       - echo Build started on `date`
-      - echo Building the Docker image...
+      
+      - echo "Running SonarQube Analysis..."
+      - export PATH="$PATH:/opt/sonar-scanner/bin"
+      - sonar-scanner \
+          -Dsonar.projectKey=$SONAR_PROJECT_KEY \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.login=$SONAR_LOGIN \
+          -Dsonar.exclusions="node_modules/**,test/**,Dockerfile" \
+          -Dsonar.language=js \
+          -Dsonar.projectVersion=1.0 \
+          -Dsonar.sourceEncoding=UTF-8
+      
+      - echo "Building the Docker image..."
       - docker build -t nodejs-application .
       - docker tag nodejs-application:latest 637423656705.dkr.ecr.us-east-1.amazonaws.com/nodejs-application:latest
+
   post_build:
     commands:
       - echo Pushing the Docker image...
       - docker push 637423656705.dkr.ecr.us-east-1.amazonaws.com/nodejs-application:latest
+
+      - echo "Generating image definition JSON for deployment..."
       - printf '[{"name":"nodejs-application","imageUri":"%s"}]' 637423656705.dkr.ecr.us-east-1.amazonaws.com/nodejs-application:latest > imagedefinitions.json
+      
+      - echo "Checking SonarQube Quality Gate Status..."
+      - RESPONSE=$(curl -u "$SONAR_LOGIN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$SONAR_PROJECT_KEY")
+      - echo "SonarQube Response: $RESPONSE"
+      - if echo "$RESPONSE" | grep -q '"status":"ERROR"'; then echo "Quality Gate failed, stopping build"; exit 1; fi
+
 artifacts:
-  files: imagedefinitions.json
+  files: 
+    - imagedefinitions.json
