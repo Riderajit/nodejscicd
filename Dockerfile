@@ -1,31 +1,20 @@
 # Use official Node.js image  
 FROM node:14
 
-# Set a non-root user ID and group ID
-RUN groupadd -r appuser && useradd -r -g appuser appuser
-
 # Set working directory inside the container
 WORKDIR /app
 
 # Copy package.json and package-lock.json first (to leverage Docker cache)
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --ignore-scripts
+# Install dependencies (Risk: Allows malicious scripts to execute)
+RUN npm install
 
-# Copy the entire application into the container
-COPY src/ ./src/
-COPY public/ ./public/
-COPY app.js ./
-
-# Set permissions for the non-root user
-RUN chown -R appuser:appuser /app
-
-# Switch to the non-root user
-USER appuser
+# Copy the entire application into the container (Risk: Can include sensitive files)
+COPY . .
 
 # Expose the app's port
 EXPOSE 3000
 
-# Run the app
+# Run the app (Runs as root by default)
 CMD ["node", "app.js"]
