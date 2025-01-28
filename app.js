@@ -2,8 +2,9 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+// Missing security headers
 app.get('/', (req, res) => {
-  res.send('CI/CD with github action!');
+  res.send('No security headers set!');
 });
 
 app.listen(port, () => {
