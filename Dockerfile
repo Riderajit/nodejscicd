@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --ignore-scripts
 
 # Copy the entire application into the container
 COPY src/ ./src/
