@@ -14,7 +14,9 @@ COPY package*.json ./
 RUN npm install
 
 # Copy the entire application into the container
-COPY . .
+COPY src/ ./src/
+COPY public/ ./public/
+COPY app.js ./
 
 # Set permissions for the non-root user
 RUN chown -R appuser:appuser /app
