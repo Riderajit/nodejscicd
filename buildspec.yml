@@ -4,22 +4,22 @@ phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 975049959777.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 211125526652.dkr.ecr.us-east-1.amazonaws.com
 
   build:
     commands:
       - echo Build started on `date`
       - echo "Building the Docker image..."
       - docker build -t nodejs-application .
-      - docker tag nodejs-application:latest 975049959777.dkr.ecr.us-east-1.amazonaws.com/test:latest
+      - docker tag nodejs-application:latest 211125526652.dkr.ecr.us-east-1.amazonaws.com/test:latest
 
   post_build:
     commands:
       - echo Pushing the Docker image...
-      - docker push 975049959777.dkr.ecr.us-east-1.amazonaws.com/test:latest
+      - docker push 211125526652.dkr.ecr.us-east-1.amazonaws.com/test:latest
 
       - echo "Generating image definition JSON for deployment..."
-      - printf '[{"name":"nodejs-application","imageUri":"%s"}]' 975049959777.dkr.ecr.us-east-1.amazonaws.com/test:latest > imagedefinitions.json
+      - printf '[{"name":"nodejs-application","imageUri":"%s"}]' 211125526652.dkr.ecr.us-east-1.amazonaws.com/test:latest > imagedefinitions.json
 
 artifacts:
   files: 
